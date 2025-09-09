@@ -400,7 +400,7 @@ void main(){
   </Content>
 
   <!-- ================= Init ================= -->
-  <OnInit>
+  <OnLoaded>
     <ZExpression><Expression><![CDATA[
 Parameters[0]=0.5;
 Parameters[1]=0.5;
@@ -427,7 +427,7 @@ Parameters[21]=0.5;
 Parameters[22]=0.5;
 Parameters[23]=0.5;
 ]]></Expression></ZExpression>
-  </OnInit>
+  </OnLoaded>
 
   <!-- ================= Per-frame ================= -->
   <OnRender>
