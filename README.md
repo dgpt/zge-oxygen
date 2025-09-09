@@ -12,10 +12,9 @@ The FL Studio ZGameEditor UI exposes the following parameters:
 6. Density Gain
 7. Nucleus Radius
 8. Nucleus Dot Size
-9. Twinkle Base Rate
-10. Background HSLA (Hue, Sat, Light, Alpha)
-11. Proton HSLA
-12. Neutron HSLA
-13. Electron HSLA
+9. Background HSLA (Hue, Sat, Light, Alpha)
+10. Proton HSLA
+11. Neutron HSLA
+12. Electron HSLA
 
-All sliders default to 50% to ensure a visible render on load.
+All sliders default to 50% to ensure a visible render on load. Protons and neutrons react to the beat, and hue sliders now affect all elements.

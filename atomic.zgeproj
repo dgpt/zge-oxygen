@@ -57,13 +57,8 @@
     <DefineVariable Name="BASE_NDOT_DEF"  Value="0.016"/>
     <DefineVariable Name="BASE_NDOT_MAX"  Value="0.040"/>
 
-    <!-- Twinkle pacing (Hz per electron at Drive=0) -->
-    <DefineVariable Name="BASE_TW_MIN"    Value="0.05"/>
-    <DefineVariable Name="BASE_TW_DEF"    Value="0.40"/>
-    <DefineVariable Name="BASE_TW_MAX"    Value="2.00"/>
-
     <!-- Color defaults (midpoint = DEF_*) and bounds for mapping -->
-    <!-- Hue uses [0..360], others [0..1] -->
+    <!-- Hue constants in degrees, shader uses normalized 0..1 -->
     <DefineVariable Name="DEF_BGH"  Value="210.0"/>
     <DefineVariable Name="DEF_BGS"  Value="0.45"/>
     <DefineVariable Name="DEF_BGL"  Value="0.015"/>
@@ -95,9 +90,9 @@
     <DefineVariable Name="DEF_ElecA" Value="1.0"/>
 
     <!-- ====== UI Sliders ====== -->
-    <DefineArray Name="Parameters" SizeDim1="25"/>
+    <DefineArray Name="Parameters" SizeDim1="24"/>
     <DefineConstant Name="ParamHelpConst" Type="2"
-      StringValue="Audio Gain&#10;Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;Twinkle Base Rate&#10;BG Hue&#10;BG Sat&#10;BG Light&#10;BG Alpha&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Electron Hue&#10;Electron Sat&#10;Electron Light&#10;Electron Alpha"/>
+      StringValue="Audio Gain&#10;Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;BG Hue&#10;BG Sat&#10;BG Light&#10;BG Alpha&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Electron Hue&#10;Electron Sat&#10;Electron Light&#10;Electron Alpha"/>
 
     <!-- ====== Runtime state / uniforms ====== -->
     <DefineVariable Name="Drive"     Value="0.0"/>
@@ -112,39 +107,38 @@
     <DefineVariable Name="StepMul"   Value="1.00"/>
     <DefineVariable Name="NucR"      Value="0.08"/>
     <DefineVariable Name="NucDot"    Value="0.016"/>
-    <DefineVariable Name="TwBase"    Value="0.40"/>
 
     <!-- Phase integrator -->
     <DefineVariable Name="Phase"     Value="0.0"/>
     <DefineVariable Name="HzSmooth"  Value="0.10"/>
 
     <!-- HSLA uniforms -->
-    <DefineVariable Name="uBGH" Value="210.0"/>
+    <DefineVariable Name="uBGH" Value="0.583333"/>
     <DefineVariable Name="uBGS" Value="0.45"/>
     <DefineVariable Name="uBGL" Value="0.015"/>
     <DefineVariable Name="uBGA" Value="1.0"/>
 
-    <DefineVariable Name="uPosH" Value="190.0"/>
+    <DefineVariable Name="uPosH" Value="0.527778"/>
     <DefineVariable Name="uPosS" Value="0.90"/>
     <DefineVariable Name="uPosL" Value="0.62"/>
     <DefineVariable Name="uPosA" Value="1.0"/>
 
-    <DefineVariable Name="uNegH" Value="325.0"/>
+    <DefineVariable Name="uNegH" Value="0.902778"/>
     <DefineVariable Name="uNegS" Value="0.85"/>
     <DefineVariable Name="uNegL" Value="0.60"/>
     <DefineVariable Name="uNegA" Value="1.0"/>
 
-    <DefineVariable Name="uProtH" Value="28.0"/>
+    <DefineVariable Name="uProtH" Value="0.077778"/>
     <DefineVariable Name="uProtS" Value="0.95"/>
     <DefineVariable Name="uProtL" Value="0.72"/>
     <DefineVariable Name="uProtA" Value="1.0"/>
 
-    <DefineVariable Name="uNeutH" Value="260.0"/>
+    <DefineVariable Name="uNeutH" Value="0.722222"/>
     <DefineVariable Name="uNeutS" Value="0.65"/>
     <DefineVariable Name="uNeutL" Value="0.75"/>
     <DefineVariable Name="uNeutA" Value="1.0"/>
 
-    <DefineVariable Name="uElecH" Value="190.0"/>
+    <DefineVariable Name="uElecH" Value="0.527778"/>
     <DefineVariable Name="uElecS" Value="0.98"/>
     <DefineVariable Name="uElecL" Value="0.92"/>
     <DefineVariable Name="uElecA" Value="1.0"/>
@@ -168,7 +162,7 @@ uniform float uTime, uDrive, uSmooth, uAnimSpeed, uAspect, uPhase;
 
 /* user uniforms */
 uniform float uOrbScale, uDensity, uStepMul;
-uniform float uNucR, uNucDot, uTwBase;
+uniform float uNucR, uNucDot;
 
 /* HSLA uniforms */
 uniform float uBGH,uBGS,uBGL,uBGA;
@@ -187,12 +181,10 @@ const float STEP_LEN0 = (2.0*HALF_Z)/float(VOL_STEPS);
 const float ORB_S_1S=0.80, ORB_S_2S=0.30, ORB_S_2P=0.25;
 const float ORB_AUDIO_EXPAND=0.50;
 
-const float DENS_PEAK_GAIN=2.0;
+const float DENS_PEAK_GAIN=3.5;
 
 const float PROTONS=8.0, NEUTRONS=8.0;
 const float NUC_JITTER=0.35;
-const float ELECTRONS=8.0;
-const float TWIN_MAX_GAIN=3.5, TWIN_HALO=2.2, TWIN_GAIN0=2.6;
 
 const int NUC_MAX=64;
 const float TAU=6.28318530718;
@@ -200,7 +192,7 @@ const float TAU=6.28318530718;
 /* utils */
 float hash1(float x){ return fract(sin(x*113.3189)*43758.5453); }
 vec3 hsl2rgb(vec3 h){
-  float H=h.x/360.0,S=clamp(h.y,0.0,1.0),L=clamp(h.z,0.0,1.0);
+  float H=fract(h.x),S=clamp(h.y,0.0,1.0),L=clamp(h.z,0.0,1.0);
   float C=(1.0-abs(2.0*L-1.0))*S, X=C*(1.0-abs(mod(H*6.0,2.0)-1.0));
   vec3  rgb=(H<1./6.)?vec3(C,X,0):(H<2./6.)?vec3(X,C,0):(H<3./6.)?vec3(0,C,X):
              (H<4./6.)?vec3(0,X,C):(H<5./6.)?vec3(X,0,C):vec3(C,0,X);
@@ -232,13 +224,17 @@ float famScale(int s){
 }
 
 vec3 swirl(vec3 p, float d){
-  float amp = (0.20 + 0.50*d) * mix(1.0, 0.6, uSmooth);
+  float amp = (0.30 + 0.90*d) * mix(1.0, 0.5, uSmooth);
   float spd = 0.31 * mix(1.0, 0.6, uSmooth);
   float s = sin(spd*uTime + 0.7*d), c = cos(spd*uTime + 0.7*d);
   vec3 q = vec3( c*p.x + s*p.z, p.y, -s*p.x + c*p.z );
-  float w = 0.20 * mix(1.0, 0.6, uSmooth)
-          * sin( (q.y*1.3 + q.x*0.7 + q.z*0.9) * 2.7 + 0.9*uTime );
-  return mix(p, q + w*normalize(vec3(q.x+0.001, q.y-0.002, q.z+0.003)), amp);
+  float w = 0.35 * (1.0 + 2.0*d) * mix(1.0, 0.5, uSmooth)
+          * sin( (q.y*1.7 + q.x*1.1 + q.z*1.3) * 3.3 + 0.9*uTime );
+  vec3 n = normalize(vec3(q.x+0.003, q.y-0.004, q.z+0.005));
+  q += w*n;
+  float sy=sin(0.2*uTime*(1.0+d)), cy=cos(0.2*uTime*(1.0+d));
+  q = vec3(cy*q.x + sy*q.y, -sy*q.x + cy*q.y, q.z);
+  return mix(p, q, amp);
 }
 
 float psiAt(int s, vec3 p, float drive){
@@ -275,7 +271,8 @@ vec4  elecHSLA(){ return vec4(hsl2rgb(vec3(uElecH,uElecS,uElecL)), uElecA); }
 vec3 nucleus(vec2 uv01){
   vec3 col=vec3(0.0); int NP=int(PROTONS+0.5), NN=int(NEUTRONS+0.5), NT=NP+NN;
   if(NT<1) return col; if(NT>NUC_MAX) NT=NUC_MAX;
-  float jitter = NUC_JITTER * mix(1.0, 0.4, uSmooth);
+  float drive = clamp(uDrive,0.0,1.0);
+  float jitter = NUC_JITTER * (1.0 + 2.5*drive) * mix(1.0, 0.4, uSmooth);
   vec4 pHSLA = protHSLA();
   vec4 nHSLA = neutHSLA();
   for(int k=0;k<NUC_MAX;k++){
@@ -284,7 +281,7 @@ vec3 nucleus(vec2 uv01){
     float z = 1.0 - 2.0*m/float(NT);
     float r = sqrt(max(0.0,1.0 - z*z));
     float th= 2.3999632297 * m;
-    vec3 p = vec3(r*cos(th), r*sin(th), z) * uNucR;
+    vec3 p = vec3(r*cos(th), r*sin(th), z) * uNucR * (1.0 + 0.5*drive);
 
     vec3 j = vec3(
       sin(1.9*uTime + 4.1*hash1(5.7*m)),
@@ -294,39 +291,13 @@ vec3 nucleus(vec2 uv01){
     p += j;
 
     vec2 n01 = (p.xy * ZOOM) / vec2(uAspect,1.0) * 0.5 + 0.5;
-    float sigma = uNucDot * ZOOM;
+    float sigma = uNucDot * ZOOM * (1.0 + 0.8*drive);
     float d = length(uv01 - n01);
     float g = exp(-pow(d/(sigma+1e-6),2.0));
     vec3 c = (k<NP) ? pHSLA.rgb*pHSLA.a : nHSLA.rgb*nHSLA.a;
-    col += c*g;
+    col += c*g*(1.0 + drive);
   }
   return col;
-}
-
-vec3 twinkle(float drive, float state){
-  vec4 eHSLA = elecHSLA();
-  float E=max(1.0,ELECTRONS);
-  float rate=uTwBase*(1.0+3.5*drive)*E * mix(1.0, 0.5, uSmooth);
-  float ticks=floor(uTime*rate), idx=mod(ticks,E), ph=fract(uTime*rate);
-  float env=smoothstep(0.00,0.30,ph)*(1.0 - smoothstep(0.70,1.0,ph));
-  vec3 best=vec3(0.0); float bestDen=-1.0;
-  for(int c=0;c<8;c++){
-    float seed=(idx+1.0)*31.0 + ticks*13.0 + float(c)*97.0;
-    float u1=hash1(seed), u2=hash1(seed*1.37), u3=hash1(seed*2.17);
-    float cz=clamp(2.0*u1-1.0,-1.0,1.0), az=acos(cz), ang=TAU*u2;
-    vec3 dir=vec3(sin(az)*cos(ang), sin(az)*sin(ang), cz);
-    float nHint=1.0+mod(state,3.0);
-    float radius=-log(max(1e-4,u3))*(0.25*nHint);
-    vec3 p=dir*radius;
-    float den=psiMix(p,state,drive); den*=den;
-    if(den>bestDen){ bestDen=den; best=p; }
-  }
-  vec2 e01=(best.xy*ZOOM)/vec2(uAspect,1.0)*0.5+0.5;
-  float size=0.0007*ZOOM*(1.0+0.7*drive);
-  float d=length(uv01()-e01);
-  float g=exp(-pow(d/(size+1e-6),2.0))*env;
-  float h=exp(-pow(d/((size)*TWIN_HALO+1e-6),2.0))*env;
-  return eHSLA.rgb*(eHSLA.a*(g*2.2+0.7*h)*TWIN_GAIN0*(1.0+1.8*drive));
 }
 
 void main(){
@@ -370,7 +341,6 @@ void main(){
 
   col += acc;
   col += nucleus(uv01());
-  col += twinkle(d, st);
 
   col = 1.0 - exp(-min(col, vec3(24.0)));
   col = pow(col, vec3(1.0/2.2));
@@ -392,7 +362,6 @@ void main(){
 
         <ShaderVariable VariableName="uNucR"       VariableRef="NucR"/>
         <ShaderVariable VariableName="uNucDot"     VariableRef="NucDot"/>
-        <ShaderVariable VariableName="uTwBase"     VariableRef="TwBase"/>
 
         <ShaderVariable VariableName="uBGH" VariableRef="uBGH"/>
         <ShaderVariable VariableName="uBGS" VariableRef="uBGS"/>
@@ -457,7 +426,6 @@ Parameters[20]=0.5;
 Parameters[21]=0.5;
 Parameters[22]=0.5;
 Parameters[23]=0.5;
-Parameters[24]=0.5;
 ]]></Expression></ZExpression>
   </OnInit>
 
@@ -541,35 +509,31 @@ v = Parameters[7];
 if (v < 0.5) NucDot = BASE_NDOT_MIN + (BASE_NDOT_DEF - BASE_NDOT_MIN) * (v * 2.0);
 else         NucDot = BASE_NDOT_DEF + (BASE_NDOT_MAX - BASE_NDOT_DEF) * (v * 2.0 - 1.0);
 
-/* Twinkle Base Rate */
-v = Parameters[8];
-if (v < 0.5) TwBase = BASE_TW_MIN + (BASE_TW_DEF - BASE_TW_MIN) * (v * 2.0);
-else         TwBase = BASE_TW_DEF + (BASE_TW_MAX - BASE_TW_DEF) * (v * 2.0 - 1.0);
 ]]></Expression></ZExpression>
 
     <!-- HSLA (0.5 = DEF_*) -->
     <ZExpression><Expression><![CDATA[
-float q;
+float q; float def;
 /* BG */
-q = Parameters[9];  if(q<0.5) uBGH = 0.0 + (DEF_BGH - 0.0)*(q*2.0); else uBGH = DEF_BGH + (360.0-DEF_BGH)*(q*2.0-1.0);
-q = Parameters[10]; if(q<0.5) uBGS = 0.0 + (DEF_BGS - 0.0)*(q*2.0); else uBGS = DEF_BGS + (1.0-DEF_BGS)*(q*2.0-1.0);
-q = Parameters[11]; if(q<0.5) uBGL = 0.0 + (DEF_BGL - 0.0)*(q*2.0); else uBGL = DEF_BGL + (1.0-DEF_BGL)*(q*2.0-1.0);
-q = Parameters[12]; if(q<0.5) uBGA = 0.0 + (DEF_BGA - 0.0)*(q*2.0); else uBGA = DEF_BGA + (1.0-DEF_BGA)*(q*2.0-1.0);
+def = DEF_BGH/360.0; q = Parameters[8];  if(q<0.5) uBGH = def*(q*2.0); else uBGH = def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[9];  if(q<0.5) uBGS = 0.0 + (DEF_BGS - 0.0)*(q*2.0); else uBGS = DEF_BGS + (1.0-DEF_BGS)*(q*2.0-1.0);
+q = Parameters[10]; if(q<0.5) uBGL = 0.0 + (DEF_BGL - 0.0)*(q*2.0); else uBGL = DEF_BGL + (1.0-DEF_BGL)*(q*2.0-1.0);
+q = Parameters[11]; if(q<0.5) uBGA = 0.0 + (DEF_BGA - 0.0)*(q*2.0); else uBGA = DEF_BGA + (1.0-DEF_BGA)*(q*2.0-1.0);
 /* Proton */
-q = Parameters[13]; if(q<0.5) uProtH=0.0 + (DEF_ProtH-0.0)*(q*2.0); else uProtH=DEF_ProtH + (360.0-DEF_ProtH)*(q*2.0-1.0);
-q = Parameters[14]; if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
-q = Parameters[15]; if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
-q = Parameters[16]; if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
+def = DEF_ProtH/360.0; q = Parameters[12]; if(q<0.5) uProtH=def*(q*2.0); else uProtH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[13]; if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
+q = Parameters[14]; if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
+q = Parameters[15]; if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
 /* Neutron */
-q = Parameters[17]; if(q<0.5) uNeutH=0.0 + (DEF_NeutH-0.0)*(q*2.0); else uNeutH=DEF_NeutH + (360.0-DEF_NeutH)*(q*2.0-1.0);
-q = Parameters[18]; if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
-q = Parameters[19]; if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
-q = Parameters[20]; if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
+def = DEF_NeutH/360.0; q = Parameters[16]; if(q<0.5) uNeutH=def*(q*2.0); else uNeutH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[17]; if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
+q = Parameters[18]; if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
+q = Parameters[19]; if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
 /* Electron */
-q = Parameters[21]; if(q<0.5) uElecH=0.0 + (DEF_ElecH-0.0)*(q*2.0); else uElecH=DEF_ElecH + (360.0-DEF_ElecH)*(q*2.0-1.0);
-q = Parameters[22]; if(q<0.5) uElecS=0.0 + (DEF_ElecS-0.0)*(q*2.0); else uElecS=DEF_ElecS + (1.0-DEF_ElecS)*(q*2.0-1.0);
-q = Parameters[23]; if(q<0.5) uElecL=0.0 + (DEF_ElecL-0.0)*(q*2.0); else uElecL=DEF_ElecL + (1.0-DEF_ElecL)*(q*2.0-1.0);
-q = Parameters[24]; if(q<0.5) uElecA=0.0 + (DEF_ElecA-0.0)*(q*2.0); else uElecA=DEF_ElecA + (1.0-DEF_ElecA)*(q*2.0-1.0);
+def = DEF_ElecH/360.0; q = Parameters[20]; if(q<0.5) uElecH=def*(q*2.0); else uElecH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[21]; if(q<0.5) uElecS=0.0 + (DEF_ElecS-0.0)*(q*2.0); else uElecS=DEF_ElecS + (1.0-DEF_ElecS)*(q*2.0-1.0);
+q = Parameters[22]; if(q<0.5) uElecL=0.0 + (DEF_ElecL-0.0)*(q*2.0); else uElecL=DEF_ElecL + (1.0-DEF_ElecL)*(q*2.0-1.0);
+q = Parameters[23]; if(q<0.5) uElecA=0.0 + (DEF_ElecA-0.0)*(q*2.0); else uElecA=DEF_ElecA + (1.0-DEF_ElecA)*(q*2.0-1.0);
 ]]></Expression></ZExpression>
 
     <!-- Fullscreen draw via your scaling group -->
