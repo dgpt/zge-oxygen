@@ -31,7 +31,7 @@
     <DefineVariable Name="BASE_AS_MAX"    Value="0.40"/>
     <!-- Smoothness (easing width / swirl damping) -->
     <DefineVariable Name="BASE_SM_MIN"    Value="0.0"/>
-    <DefineVariable Name="BASE_SM_DEF"    Value="0.70"/>
+    <DefineVariable Name="BASE_SM_DEF"    Value="0.85"/>
     <DefineVariable Name="BASE_SM_MAX"    Value="1.0"/>
 
     <!-- Engine controls -->
@@ -42,10 +42,6 @@
     <DefineVariable Name="BASE_DENS_MIN"  Value="0.50"/>
     <DefineVariable Name="BASE_DENS_DEF"  Value="1.25"/>
     <DefineVariable Name="BASE_DENS_MAX"  Value="2.50"/>
-
-    <DefineVariable Name="BASE_WISP_MIN"  Value="0.00"/>
-    <DefineVariable Name="BASE_WISP_DEF"  Value="0.28"/>
-    <DefineVariable Name="BASE_WISP_MAX"  Value="0.50"/>
 
     <!-- Quality (step length multiplier): smaller = better -->
     <DefineVariable Name="BASE_Q_BEST"    Value="0.50"/>   <!-- best quality -->
@@ -61,18 +57,8 @@
     <DefineVariable Name="BASE_NDOT_DEF"  Value="0.016"/>
     <DefineVariable Name="BASE_NDOT_MAX"  Value="0.040"/>
 
-    <!-- Twinkle pacing (Hz per electron at Drive=0) -->
-    <DefineVariable Name="BASE_TW_MIN"    Value="0.05"/>
-    <DefineVariable Name="BASE_TW_DEF"    Value="0.40"/>
-    <DefineVariable Name="BASE_TW_MAX"    Value="2.00"/>
-
     <!-- Color defaults (midpoint = DEF_*) and bounds for mapping -->
-    <!-- Hue uses [0..360], others [0..1] -->
-    <DefineVariable Name="DEF_BGH"  Value="210.0"/>
-    <DefineVariable Name="DEF_BGS"  Value="0.45"/>
-    <DefineVariable Name="DEF_BGL"  Value="0.015"/>
-    <DefineVariable Name="DEF_BGA"  Value="1.0"/>
-
+    <!-- Hue constants in degrees, shader uses normalized 0..1 -->
     <DefineVariable Name="DEF_PosH" Value="190.0"/>
     <DefineVariable Name="DEF_PosS" Value="0.90"/>
     <DefineVariable Name="DEF_PosL" Value="0.62"/>
@@ -99,9 +85,9 @@
     <DefineVariable Name="DEF_ElecA" Value="1.0"/>
 
     <!-- ====== UI Sliders ====== -->
-    <DefineArray Name="Parameters" SizeDim1="35"/>
+    <DefineArray Name="Parameters" SizeDim1="23"/>
     <DefineConstant Name="ParamHelpConst" Type="2"
-      StringValue="Audio Gain&#10;Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Wisp Strength&#10;Quality&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;Twinkle Base Rate&#10;BG Hue&#10;BG Sat&#10;BG Light&#10;BG Alpha&#10;POS Hue&#10;POS Sat&#10;POS Light&#10;POS Alpha&#10;NEG Hue&#10;NEG Sat&#10;NEG Light&#10;NEG Alpha&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Electron Hue&#10;Electron Sat&#10;Electron Light&#10;Electron Alpha"/>
+      StringValue="Audio Gain&#10;Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;Orbital Reactivity&#10;Nucleus Reactivity&#10;Density Reactivity&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Electron Hue&#10;Electron Sat&#10;Electron Light&#10;Electron Alpha"/>
 
     <!-- ====== Runtime state / uniforms ====== -->
     <DefineVariable Name="Drive"     Value="0.0"/>
@@ -113,43 +99,39 @@
     <DefineVariable Name="AnimSpeed" Value="0.18"/>
     <DefineVariable Name="OrbScale"  Value="0.50"/>
     <DefineVariable Name="Density"   Value="1.25"/>
-    <DefineVariable Name="Wisp"      Value="0.28"/>
     <DefineVariable Name="StepMul"   Value="1.00"/>
     <DefineVariable Name="NucR"      Value="0.08"/>
     <DefineVariable Name="NucDot"    Value="0.016"/>
-    <DefineVariable Name="TwBase"    Value="0.40"/>
+    <DefineVariable Name="OrbSens"   Value="0.50"/>
+    <DefineVariable Name="NucSens"   Value="0.50"/>
+    <DefineVariable Name="DenSens"   Value="0.50"/>
 
     <!-- Phase integrator -->
     <DefineVariable Name="Phase"     Value="0.0"/>
     <DefineVariable Name="HzSmooth"  Value="0.10"/>
 
     <!-- HSLA uniforms -->
-    <DefineVariable Name="uBGH" Value="210.0"/>
-    <DefineVariable Name="uBGS" Value="0.45"/>
-    <DefineVariable Name="uBGL" Value="0.015"/>
-    <DefineVariable Name="uBGA" Value="1.0"/>
-
-    <DefineVariable Name="uPosH" Value="190.0"/>
+    <DefineVariable Name="uPosH" Value="0.527778"/>
     <DefineVariable Name="uPosS" Value="0.90"/>
     <DefineVariable Name="uPosL" Value="0.62"/>
     <DefineVariable Name="uPosA" Value="1.0"/>
 
-    <DefineVariable Name="uNegH" Value="325.0"/>
+    <DefineVariable Name="uNegH" Value="0.902778"/>
     <DefineVariable Name="uNegS" Value="0.85"/>
     <DefineVariable Name="uNegL" Value="0.60"/>
     <DefineVariable Name="uNegA" Value="1.0"/>
 
-    <DefineVariable Name="uProtH" Value="28.0"/>
+    <DefineVariable Name="uProtH" Value="0.077778"/>
     <DefineVariable Name="uProtS" Value="0.95"/>
     <DefineVariable Name="uProtL" Value="0.72"/>
     <DefineVariable Name="uProtA" Value="1.0"/>
 
-    <DefineVariable Name="uNeutH" Value="260.0"/>
+    <DefineVariable Name="uNeutH" Value="0.722222"/>
     <DefineVariable Name="uNeutS" Value="0.65"/>
     <DefineVariable Name="uNeutL" Value="0.75"/>
     <DefineVariable Name="uNeutA" Value="1.0"/>
 
-    <DefineVariable Name="uElecH" Value="190.0"/>
+    <DefineVariable Name="uElecH" Value="0.527778"/>
     <DefineVariable Name="uElecS" Value="0.98"/>
     <DefineVariable Name="uElecL" Value="0.92"/>
     <DefineVariable Name="uElecA" Value="1.0"/>
@@ -172,11 +154,11 @@ varying vec2 vUv;
 uniform float uTime, uDrive, uSmooth, uAnimSpeed, uAspect, uPhase;
 
 /* user uniforms */
-uniform float uOrbScale, uDensity, uWisp, uStepMul;
-uniform float uNucR, uNucDot, uTwBase;
+uniform float uOrbScale, uDensity, uStepMul;
+uniform float uNucR, uNucDot;
+uniform float uOrbSens, uNucSens, uDenSens;
 
 /* HSLA uniforms */
-uniform float uBGH,uBGS,uBGL,uBGA;
 uniform float uPosH,uPosS,uPosL,uPosA;
 uniform float uNegH,uNegS,uNegL,uNegA;
 uniform float uProtH,uProtS,uProtL,uProtA;
@@ -189,15 +171,14 @@ const float HALF_Z=2.5;
 const int   VOL_STEPS = 96;
 const float STEP_LEN0 = (2.0*HALF_Z)/float(VOL_STEPS);
 
-const float ORB_S_1S=0.80, ORB_S_2S=0.30, ORB_S_2P=0.25, ORB_S_3D=0.25;
+const float ORB_S_1S=0.80, ORB_S_2S=0.30, ORB_S_2P=0.25;
 const float ORB_AUDIO_EXPAND=0.50;
 
-const float DENS_PEAK_GAIN=2.0;
+const float DENS_PEAK_GAIN=3.5;
+const float PLASMA_GAIN=2.0;
 
 const float PROTONS=8.0, NEUTRONS=8.0;
 const float NUC_JITTER=0.35;
-const float ELECTRONS=8.0;
-const float TWIN_MAX_GAIN=3.5, TWIN_HALO=2.2, TWIN_GAIN0=2.6;
 
 const int NUC_MAX=64;
 const float TAU=6.28318530718;
@@ -205,7 +186,7 @@ const float TAU=6.28318530718;
 /* utils */
 float hash1(float x){ return fract(sin(x*113.3189)*43758.5453); }
 vec3 hsl2rgb(vec3 h){
-  float H=h.x/360.0,S=clamp(h.y,0.0,1.0),L=clamp(h.z,0.0,1.0);
+  float H=fract(h.x),S=clamp(h.y,0.0,1.0),L=clamp(h.z,0.0,1.0);
   float C=(1.0-abs(2.0*L-1.0))*S, X=C*(1.0-abs(mod(H*6.0,2.0)-1.0));
   vec3  rgb=(H<1./6.)?vec3(C,X,0):(H<2./6.)?vec3(X,C,0):(H<3./6.)?vec3(0,C,X):
              (H<4./6.)?vec3(0,X,C):(H<5./6.)?vec3(X,0,C):vec3(C,0,X);
@@ -233,18 +214,22 @@ float R32(float r){ return r*r*exp(-r/3.0); }
 float famScale(int s){
   if(s==0) return ORB_S_1S;
   if(s==1) return ORB_S_2S;
-  if(s==2||s==3||s==4) return ORB_S_2P;
-  return ORB_S_3D;
+  return ORB_S_2P;
 }
 
 vec3 swirl(vec3 p, float d){
-  float amp = (0.20 + 0.50*d) * mix(1.0, 0.6, uSmooth);
-  float spd = 0.31 * mix(1.0, 0.6, uSmooth);
-  float s = sin(spd*uTime + 0.7*d), c = cos(spd*uTime + 0.7*d);
-  vec3 q = vec3( c*p.x + s*p.z, p.y, -s*p.x + c*p.z );
-  float w = 0.20 * mix(1.0, 0.6, uSmooth)
-          * sin( (q.y*1.3 + q.x*0.7 + q.z*0.9) * 2.7 + 0.9*uTime );
-  return mix(p, q + w*normalize(vec3(q.x+0.001, q.y-0.002, q.z+0.003)), amp);
+  float amp = (0.25 + 0.75*d) * mix(1.0, 0.4, uSmooth);
+  float spd = 0.5 * mix(1.0, 0.5, uSmooth);
+  float t = spd * uTime;
+  vec3 q = p;
+  float s,c;
+  s = sin(t + 0.7*d); c = cos(t + 0.7*d); q.xz = mat2(c, s, -s, c) * q.xz;
+  s = sin(t*1.3 + 1.1*d); c = cos(t*1.3 + 1.1*d); q.yz = mat2(c, s, -s, c) * q.yz;
+  s = sin(t*1.7 + 1.7*d); c = cos(t*1.7 + 1.7*d); q.xy = mat2(c, s, -s, c) * q.xy;
+  float warp = 0.3 * (1.0 + 2.0*d) * mix(1.0, 0.3, uSmooth);
+  vec3 n = normalize(q + vec3(0.01,0.02,0.03));
+  q += warp * n;
+  return mix(p, q, amp);
 }
 
 float psiAt(int s, vec3 p, float drive){
@@ -255,32 +240,23 @@ float psiAt(int s, vec3 p, float drive){
   if(s==1) return Y00(th,ph)*R20(r);
   if(s==2) return Y11(th,ph)*R21(r);
   if(s==3) return Y1m1(th,ph)*R21(r);
-  if(s==4) return Y10(th,ph)*R21(r);
-  if(s==5) return Y20(th,ph)*R32(r);
-  return      Y21(th,ph)*R32(r);
+  return      Y10(th,ph)*R21(r);
 }
 
 float psiMix(vec3 p, float state, float drive){
-  const int COUNT=7;
+  const int COUNT=5;
   float idx=floor(state), t=fract(state);
   float tEase = mix(t, t*t*(3.0 - 2.0*t), uSmooth);
-  float width = mix(0.20, 0.90, uSmooth);
+  float width = mix(0.20, 0.95, uSmooth);
   int s0=int(mod(idx, float(COUNT)));
   int s1=int(mod(idx+1.0, float(COUNT)));
-  float a0=psiAt(s0,p,drive), a1=psiAt(s1,p,drive);
+  float a0=psiAt(s0,p,drive);
+  float a1=psiAt(s1,p,drive);
   float ts=smoothstep(0.5-width*0.5, 0.5+width*0.5, tEase);
   return mix(a0,a1,ts);
 }
 
-float wispMod(vec3 p, float d){
-  float wg = uWisp * mix(1.0, 0.6, uSmooth);
-  float w1 = sin(dot(p, vec3(1.2,1.7,2.1))*3.2 + (0.8+1.2*d)*uTime);
-  float w2 = sin(dot(p, vec3(-1.3,2.0,-0.8))*7.0 + (1.1+1.7*d)*uTime)*0.5;
-  return max(0.0, 1.0 + wg*(w1 + w2));
-}
-
 /* colors */
-vec3  bgRGB()   { return hsl2rgb(vec3(uBGH,uBGS,uBGL))*uBGA; }
 vec3  posRGB()  { return hsl2rgb(vec3(uPosH,uPosS,uPosL))*uPosA; }
 vec3  negRGB()  { return hsl2rgb(vec3(uNegH,uNegS,uNegL))*uNegA; }
 vec4  protHSLA(){ return vec4(hsl2rgb(vec3(uProtH,uProtS,uProtL)), uProtA); }
@@ -290,7 +266,8 @@ vec4  elecHSLA(){ return vec4(hsl2rgb(vec3(uElecH,uElecS,uElecL)), uElecA); }
 vec3 nucleus(vec2 uv01){
   vec3 col=vec3(0.0); int NP=int(PROTONS+0.5), NN=int(NEUTRONS+0.5), NT=NP+NN;
   if(NT<1) return col; if(NT>NUC_MAX) NT=NUC_MAX;
-  float jitter = NUC_JITTER * mix(1.0, 0.4, uSmooth);
+  float drive = clamp(uDrive,0.0,1.0) * uNucSens;
+  float jitter = NUC_JITTER * drive * mix(1.0, 0.4, uSmooth);
   vec4 pHSLA = protHSLA();
   vec4 nHSLA = neutHSLA();
   for(int k=0;k<NUC_MAX;k++){
@@ -299,7 +276,7 @@ vec3 nucleus(vec2 uv01){
     float z = 1.0 - 2.0*m/float(NT);
     float r = sqrt(max(0.0,1.0 - z*z));
     float th= 2.3999632297 * m;
-    vec3 p = vec3(r*cos(th), r*sin(th), z) * uNucR;
+    vec3 p = vec3(r*cos(th), r*sin(th), z) * uNucR * (1.0 + 0.5*drive);
 
     vec3 j = vec3(
       sin(1.9*uTime + 4.1*hash1(5.7*m)),
@@ -309,43 +286,17 @@ vec3 nucleus(vec2 uv01){
     p += j;
 
     vec2 n01 = (p.xy * ZOOM) / vec2(uAspect,1.0) * 0.5 + 0.5;
-    float sigma = uNucDot * ZOOM;
+    float sigma = uNucDot * ZOOM * (1.0 + 0.8*drive);
     float d = length(uv01 - n01);
     float g = exp(-pow(d/(sigma+1e-6),2.0));
     vec3 c = (k<NP) ? pHSLA.rgb*pHSLA.a : nHSLA.rgb*nHSLA.a;
-    col += c*g;
+    col += c*g*(1.0 + drive);
   }
   return col;
 }
 
-vec3 twinkle(float drive, float state){
-  vec4 eHSLA = elecHSLA();
-  float E=max(1.0,ELECTRONS);
-  float rate=uTwBase*(1.0+3.5*drive)*E * mix(1.0, 0.5, uSmooth);
-  float ticks=floor(uTime*rate), idx=mod(ticks,E), ph=fract(uTime*rate);
-  float env=smoothstep(0.00,0.30,ph)*(1.0 - smoothstep(0.70,1.0,ph));
-  vec3 best=vec3(0.0); float bestDen=-1.0;
-  for(int c=0;c<8;c++){
-    float seed=(idx+1.0)*31.0 + ticks*13.0 + float(c)*97.0;
-    float u1=hash1(seed), u2=hash1(seed*1.37), u3=hash1(seed*2.17);
-    float cz=clamp(2.0*u1-1.0,-1.0,1.0), az=acos(cz), ang=TAU*u2;
-    vec3 dir=vec3(sin(az)*cos(ang), sin(az)*sin(ang), cz);
-    float nHint=1.0+mod(state,3.0);
-    float radius=-log(max(1e-4,u3))*(0.25*nHint);
-    vec3 p=dir*radius;
-    float den=psiMix(p,state,drive); den*=den;
-    if(den>bestDen){ bestDen=den; best=p; }
-  }
-  vec2 e01=(best.xy*ZOOM)/vec2(uAspect,1.0)*0.5+0.5;
-  float size=0.0007*ZOOM*(1.0+0.7*drive);
-  float d=length(uv01()-e01);
-  float g=exp(-pow(d/(size+1e-6),2.0))*env;
-  float h=exp(-pow(d/((size)*TWIN_HALO+1e-6),2.0))*env;
-  return eHSLA.rgb*(eHSLA.a*(g*2.2+0.7*h)*TWIN_GAIN0*(1.0+1.8*drive));
-}
-
 void main(){
-  vec3 col = bgRGB();
+  vec3 col = vec3(0.0);
 
   float d  = clamp(uDrive, 0.0, 1.0);
   float st = uPhase;
@@ -364,20 +315,21 @@ void main(){
   for(int i=0;i<VOL_STEPS;i++){
     float z = -HALF_Z + (float(i)+0.5)*stepLen;
     vec3  p = ro + rd*(z+HALF_Z);
-    float psi = psiMix(p, st, d);
+    float psi = psiMix(p, st, d*uOrbSens);
     float pos = max(psi, 0.0), neg = max(-psi, 0.0);
     float rPos= pos*pos, rNeg=neg*neg;
 
-    float rho = (rPos + rNeg) * wispMod(p, d);
+    float rho = (rPos + rNeg);
 
-    float k    = uDensity * (1.0 + 2.0*d) * kComp;
+    float k    = uDensity * (1.0 + 2.0*d*uDenSens) * kComp;
     float a    = 1.0 - exp(-k * rho * stepLen);
     a = clamp(a, 0.0, 1.0);
 
     float wsum = rPos + rNeg + 1e-6;
     vec3  tint = (cPos*(rPos/wsum) + cNeg*(rNeg/wsum));
 
-    vec3  contrib = tint * a;
+    float emit = rho * rho * PLASMA_GAIN;
+    vec3  contrib = tint * a * (1.0 + emit);
     acc += T * contrib;
     T   *= (1.0 - a);
     if(T < 0.02) break;
@@ -385,7 +337,6 @@ void main(){
 
   col += acc;
   col += nucleus(uv01());
-  col += twinkle(d, st);
 
   col = 1.0 - exp(-min(col, vec3(24.0)));
   col = pow(col, vec3(1.0/2.2));
@@ -403,17 +354,13 @@ void main(){
 
         <ShaderVariable VariableName="uOrbScale"   VariableRef="OrbScale"/>
         <ShaderVariable VariableName="uDensity"    VariableRef="Density"/>
-        <ShaderVariable VariableName="uWisp"       VariableRef="Wisp"/>
         <ShaderVariable VariableName="uStepMul"    VariableRef="StepMul"/>
 
         <ShaderVariable VariableName="uNucR"       VariableRef="NucR"/>
         <ShaderVariable VariableName="uNucDot"     VariableRef="NucDot"/>
-        <ShaderVariable VariableName="uTwBase"     VariableRef="TwBase"/>
-
-        <ShaderVariable VariableName="uBGH" VariableRef="uBGH"/>
-        <ShaderVariable VariableName="uBGS" VariableRef="uBGS"/>
-        <ShaderVariable VariableName="uBGL" VariableRef="uBGL"/>
-        <ShaderVariable VariableName="uBGA" VariableRef="uBGA"/>
+        <ShaderVariable VariableName="uOrbSens"    VariableRef="OrbSens"/>
+        <ShaderVariable VariableName="uNucSens"    VariableRef="NucSens"/>
+        <ShaderVariable VariableName="uDenSens"    VariableRef="DenSens"/>
 
         <ShaderVariable VariableName="uPosH" VariableRef="uPosH"/>
         <ShaderVariable VariableName="uPosS" VariableRef="uPosS"/>
@@ -445,6 +392,35 @@ void main(){
     <Material Name="Mat" Shader="ScreenShader"/>
 
   </Content>
+
+  <!-- ================= Init ================= -->
+  <OnInit>
+    <ZExpression><Expression><![CDATA[
+Parameters[0]=0.5;
+Parameters[1]=0.5;
+Parameters[2]=0.5;
+Parameters[3]=0.5;
+Parameters[4]=0.5;
+Parameters[5]=0.5;
+Parameters[6]=0.5;
+Parameters[7]=0.5;
+Parameters[8]=0.5;
+Parameters[9]=0.5;
+Parameters[10]=0.5;
+Parameters[11]=0.5;
+Parameters[12]=0.5;
+Parameters[13]=0.5;
+Parameters[14]=0.5;
+Parameters[15]=0.5;
+Parameters[16]=0.5;
+Parameters[17]=0.5;
+Parameters[18]=0.5;
+Parameters[19]=0.5;
+Parameters[20]=0.5;
+Parameters[21]=0.5;
+Parameters[22]=0.5;
+]]></Expression></ZExpression>
+  </OnInit>
 
   <!-- ================= Per-frame ================= -->
   <OnRender>
@@ -516,65 +492,41 @@ v = Parameters[5];
 if (v < 0.5) Density = BASE_DENS_MIN + (BASE_DENS_DEF - BASE_DENS_MIN) * (v * 2.0);
 else         Density = BASE_DENS_DEF + (BASE_DENS_MAX - BASE_DENS_DEF) * (v * 2.0 - 1.0);
 
-/* Wisp strength */
-v = Parameters[6];
-if (v < 0.5) Wisp = BASE_WISP_MIN + (BASE_WISP_DEF - BASE_WISP_MIN) * (v * 2.0);
-else         Wisp = BASE_WISP_DEF + (BASE_WISP_MAX - BASE_WISP_DEF) * (v * 2.0 - 1.0);
-
-/* Quality (inverse mapping: worst→best) */
-v = Parameters[7];
-if (v < 0.5) StepMul = BASE_Q_WORST + (BASE_Q_DEF   - BASE_Q_WORST) * (v * 2.0);
-else         StepMul = BASE_Q_DEF   + (BASE_Q_BEST  - BASE_Q_DEF)   * (v * 2.0 - 1.0);
-
 /* Nucleus radius */
-v = Parameters[8];
+v = Parameters[6];
 if (v < 0.5) NucR = BASE_NR_MIN + (BASE_NR_DEF - BASE_NR_MIN) * (v * 2.0);
 else         NucR = BASE_NR_DEF + (BASE_NR_MAX - BASE_NR_DEF) * (v * 2.0 - 1.0);
 
 /* Nucleus dot size */
-v = Parameters[9];
+v = Parameters[7];
 if (v < 0.5) NucDot = BASE_NDOT_MIN + (BASE_NDOT_DEF - BASE_NDOT_MIN) * (v * 2.0);
 else         NucDot = BASE_NDOT_DEF + (BASE_NDOT_MAX - BASE_NDOT_DEF) * (v * 2.0 - 1.0);
 
-/* Twinkle Base Rate */
-v = Parameters[10];
-if (v < 0.5) TwBase = BASE_TW_MIN + (BASE_TW_DEF - BASE_TW_MIN) * (v * 2.0);
-else         TwBase = BASE_TW_DEF + (BASE_TW_MAX - BASE_TW_DEF) * (v * 2.0 - 1.0);
+/* Reactivity sliders */
+OrbSens = Parameters[8];
+NucSens = Parameters[9];
+DenSens = Parameters[10];
+
 ]]></Expression></ZExpression>
 
     <!-- HSLA (0.5 = DEF_*) -->
     <ZExpression><Expression><![CDATA[
-float q;
-/* BG */
-q = Parameters[11];  if(q<0.5) uBGH = 0.0 + (DEF_BGH - 0.0)*(q*2.0); else uBGH = DEF_BGH + (360.0-DEF_BGH)*(q*2.0-1.0);
-q = Parameters[12];  if(q<0.5) uBGS = 0.0 + (DEF_BGS - 0.0)*(q*2.0); else uBGS = DEF_BGS + (1.0-DEF_BGS)*(q*2.0-1.0);
-q = Parameters[13];  if(q<0.5) uBGL = 0.0 + (DEF_BGL - 0.0)*(q*2.0); else uBGL = DEF_BGL + (1.0-DEF_BGL)*(q*2.0-1.0);
-q = Parameters[14];  if(q<0.5) uBGA = 0.0 + (DEF_BGA - 0.0)*(q*2.0); else uBGA = DEF_BGA + (1.0-DEF_BGA)*(q*2.0-1.0);
-/* POS */
-q = Parameters[15];  if(q<0.5) uPosH= 0.0 + (DEF_PosH-0.0)*(q*2.0);  else uPosH=DEF_PosH + (360.0-DEF_PosH)*(q*2.0-1.0);
-q = Parameters[16];  if(q<0.5) uPosS= 0.0 + (DEF_PosS-0.0)*(q*2.0);  else uPosS=DEF_PosS + (1.0-DEF_PosS)*(q*2.0-1.0);
-q = Parameters[17];  if(q<0.5) uPosL= 0.0 + (DEF_PosL-0.0)*(q*2.0);  else uPosL=DEF_PosL + (1.0-DEF_PosL)*(q*2.0-1.0);
-q = Parameters[18];  if(q<0.5) uPosA= 0.0 + (DEF_PosA-0.0)*(q*2.0);  else uPosA=DEF_PosA + (1.0-DEF_PosA)*(q*2.0-1.0);
-/* NEG */
-q = Parameters[19];  if(q<0.5) uNegH= 0.0 + (DEF_NegH-0.0)*(q*2.0);  else uNegH=DEF_NegH + (360.0-DEF_NegH)*(q*2.0-1.0);
-q = Parameters[20];  if(q<0.5) uNegS= 0.0 + (DEF_NegS-0.0)*(q*2.0);  else uNegS=DEF_NegS + (1.0-DEF_NegS)*(q*2.0-1.0);
-q = Parameters[21];  if(q<0.5) uNegL= 0.0 + (DEF_NegL-0.0)*(q*2.0);  else uNegL=DEF_NegL + (1.0-DEF_NegL)*(q*2.0-1.0);
-q = Parameters[22];  if(q<0.5) uNegA= 0.0 + (DEF_NegA-0.0)*(q*2.0);  else uNegA=DEF_NegA + (1.0-DEF_NegA)*(q*2.0-1.0);
+float q; float def;
 /* Proton */
-q = Parameters[23];  if(q<0.5) uProtH=0.0 + (DEF_ProtH-0.0)*(q*2.0); else uProtH=DEF_ProtH + (360.0-DEF_ProtH)*(q*2.0-1.0);
-q = Parameters[24];  if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
-q = Parameters[25];  if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
-q = Parameters[26];  if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
+def = DEF_ProtH/360.0; q = Parameters[11]; if(q<0.5) uProtH=def*(q*2.0); else uProtH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[12]; if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
+q = Parameters[13]; if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
+q = Parameters[14]; if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
 /* Neutron */
-q = Parameters[27];  if(q<0.5) uNeutH=0.0 + (DEF_NeutH-0.0)*(q*2.0); else uNeutH=DEF_NeutH + (360.0-DEF_NeutH)*(q*2.0-1.0);
-q = Parameters[28];  if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
-q = Parameters[29];  if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
-q = Parameters[30];  if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
+def = DEF_NeutH/360.0; q = Parameters[15]; if(q<0.5) uNeutH=def*(q*2.0); else uNeutH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[16]; if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
+q = Parameters[17]; if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
+q = Parameters[18]; if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
 /* Electron */
-q = Parameters[31];  if(q<0.5) uElecH=0.0 + (DEF_ElecH-0.0)*(q*2.0); else uElecH=DEF_ElecH + (360.0-DEF_ElecH)*(q*2.0-1.0);
-q = Parameters[32];  if(q<0.5) uElecS=0.0 + (DEF_ElecS-0.0)*(q*2.0); else uElecS=DEF_ElecS + (1.0-DEF_ElecS)*(q*2.0-1.0);
-q = Parameters[33];  if(q<0.5) uElecL=0.0 + (DEF_ElecL-0.0)*(q*2.0); else uElecL=DEF_ElecL + (1.0-DEF_ElecL)*(q*2.0-1.0);
-q = Parameters[34];  if(q<0.5) uElecA=0.0 + (DEF_ElecA-0.0)*(q*2.0); else uElecA=DEF_ElecA + (1.0-DEF_ElecA)*(q*2.0-1.0);
+def = DEF_ElecH/360.0; q = Parameters[19]; if(q<0.5) uElecH=def*(q*2.0); else uElecH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[20]; if(q<0.5) uElecS=0.0 + (DEF_ElecS-0.0)*(q*2.0); else uElecS=DEF_ElecS + (1.0-DEF_ElecS)*(q*2.0-1.0);
+q = Parameters[21]; if(q<0.5) uElecL=0.0 + (DEF_ElecL-0.0)*(q*2.0); else uElecL=DEF_ElecL + (1.0-DEF_ElecL)*(q*2.0-1.0);
+q = Parameters[22]; if(q<0.5) uElecA=0.0 + (DEF_ElecA-0.0)*(q*2.0); else uElecA=DEF_ElecA + (1.0-DEF_ElecA)*(q*2.0-1.0);
 ]]></Expression></ZExpression>
 
     <!-- Fullscreen draw via your scaling group -->
