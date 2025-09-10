@@ -29,7 +29,7 @@
     <DefineVariable Name="BASE_AS_MIN"    Value="0.02"/>
     <DefineVariable Name="BASE_AS_DEF"    Value="0.18"/>
     <DefineVariable Name="BASE_AS_MAX"    Value="0.40"/>
-    <!-- Smoothness (easing width / swirl damping) -->
+    <!-- Smoothness (easing width) -->
     <DefineVariable Name="BASE_SM_MIN"    Value="0.0"/>
     <DefineVariable Name="BASE_SM_DEF"    Value="0.70"/>
     <DefineVariable Name="BASE_SM_MAX"    Value="1.0"/>
@@ -226,25 +226,9 @@ float famScale(int s){
   return ORB_S_2P;
 }
 
-vec3 swirl(vec3 p, float d){
-  float amp = (0.30 + 0.90*d) * mix(1.0, 0.5, uSmooth);
-  float spd = 0.31 * mix(1.0, 0.6, uSmooth);
-  float s = sin(spd*uTime + 0.7*d), c = cos(spd*uTime + 0.7*d);
-  vec3 q = vec3( c*p.x + s*p.z, p.y, -s*p.x + c*p.z );
-  float w = 0.35 * (1.0 + 2.0*d) * mix(1.0, 0.5, uSmooth)
-          * sin( (q.y*1.7 + q.x*1.1 + q.z*1.3) * 3.3 + 0.9*uTime );
-  vec3 n = normalize(vec3(q.x+0.003, q.y-0.004, q.z+0.005));
-  q += w*n;
-  float sy=sin(0.2*uTime*(1.0+d)), cy=cos(0.2*uTime*(1.0+d));
-  q = vec3(cy*q.x + sy*q.y, -sy*q.x + cy*q.y, q.z);
-  float sx=sin(0.2*uTime*(1.0+d)), cx=cos(0.2*uTime*(1.0+d));
-  q = vec3(q.x, cx*q.y - sx*q.z, sx*q.y + cx*q.z);
-  return mix(p, q, amp);
-}
-
 float psiAt(int s, vec3 p, float drive){
   float sc = max(1e-3, uOrbScale * famScale(s));
-  vec3  q  = swirl(p/sc, drive);
+  vec3  q  = p/sc;
   float r,th,ph; cart2sph(q,r,th,ph);
   if(s==0) return Y00(th,ph)*R10(r);
   if(s==1) return Y00(th,ph)*R20(r);
@@ -263,6 +247,12 @@ float idx=floor(state), t=fract(state);
   float a0=psiAt(s0,p,drive), a1=psiAt(s1,p,drive);
   float ts=smoothstep(0.5-width*0.5, 0.5+width*0.5, tEase);
   return mix(a0,a1,ts);
+}
+
+float densityAt(vec3 p, float state, float drive){
+  float psi = psiMix(p, state, drive);
+  float pos = max(psi, 0.0), neg = max(-psi, 0.0);
+  return pos*pos + neg*neg;
 }
 
 /* colors */
@@ -339,7 +329,15 @@ void main(){
     float wsum = rPos + rNeg + 1e-6;
     vec3  tint = (cPos*(rPos/wsum) + cNeg*(rNeg/wsum));
 
-    vec3  contrib = tint * a;
+    float eps = stepLen;
+    vec3 grad = vec3(
+      densityAt(p + vec3(eps,0.0,0.0), st, d) - rho,
+      densityAt(p + vec3(0.0,eps,0.0), st, d) - rho,
+      densityAt(p + vec3(0.0,0.0,eps), st, d) - rho
+    );
+    float shade = 0.5 + 0.5 * max(dot(normalize(grad), normalize(vec3(1.0,1.0,1.0))), 0.0);
+
+    vec3  contrib = tint * a * shade;
     acc += T * contrib;
     T   *= (1.0 - a);
     if(T < 0.02) break;
