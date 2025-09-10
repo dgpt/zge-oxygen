@@ -59,11 +59,6 @@
 
     <!-- Color defaults (midpoint = DEF_*) and bounds for mapping -->
     <!-- Hue constants in degrees, shader uses normalized 0..1 -->
-    <DefineVariable Name="DEF_BGH"  Value="210.0"/>
-    <DefineVariable Name="DEF_BGS"  Value="0.45"/>
-    <DefineVariable Name="DEF_BGL"  Value="0.015"/>
-    <DefineVariable Name="DEF_BGA"  Value="1.0"/>
-
     <DefineVariable Name="DEF_PosH" Value="190.0"/>
     <DefineVariable Name="DEF_PosS" Value="0.90"/>
     <DefineVariable Name="DEF_PosL" Value="0.62"/>
@@ -84,15 +79,10 @@
     <DefineVariable Name="DEF_NeutL" Value="0.75"/>
     <DefineVariable Name="DEF_NeutA" Value="1.0"/>
 
-    <DefineVariable Name="DEF_ElecH" Value="190.0"/>
-    <DefineVariable Name="DEF_ElecS" Value="0.98"/>
-    <DefineVariable Name="DEF_ElecL" Value="0.92"/>
-    <DefineVariable Name="DEF_ElecA" Value="1.0"/>
-
     <!-- ====== UI Sliders ====== -->
-    <DefineArray Name="Parameters" SizeDim1="33"/>
+    <DefineArray Name="Parameters" SizeDim1="25"/>
     <DefineConstant Name="ParamHelpConst" Type="2"
-      StringValue="Audio Gain&#10;Nucleus Sensitivity&#10;Orbital Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;BG Hue&#10;BG Sat&#10;BG Light&#10;BG Alpha&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Electron Hue&#10;Electron Sat&#10;Electron Light&#10;Electron Alpha&#10;Orbital+ Hue&#10;Orbital+ Sat&#10;Orbital+ Light&#10;Orbital+ Alpha&#10;Orbital- Hue&#10;Orbital- Sat&#10;Orbital- Light&#10;Orbital- Alpha"/>
+      StringValue="Audio Gain&#10;Nucleus Sensitivity&#10;Orbital Sensitivity&#10;Smoothness&#10;Animation Speed&#10;Orbital Size&#10;Density Gain&#10;Nucleus Radius&#10;Nucleus Dot Size&#10;Proton Hue&#10;Proton Sat&#10;Proton Light&#10;Proton Alpha&#10;Neutron Hue&#10;Neutron Sat&#10;Neutron Light&#10;Neutron Alpha&#10;Orbital+ Hue&#10;Orbital+ Sat&#10;Orbital+ Light&#10;Orbital+ Alpha&#10;Orbital- Hue&#10;Orbital- Sat&#10;Orbital- Light&#10;Orbital- Alpha"/>
 
     <!-- ====== Runtime state / uniforms ====== -->
     <DefineVariable Name="Drive"     Value="0.0"/>
@@ -117,11 +107,6 @@
     <DefineVariable Name="HzSmooth"  Value="0.10"/>
 
     <!-- HSLA uniforms -->
-    <DefineVariable Name="uBGH" Value="0.583333"/>
-    <DefineVariable Name="uBGS" Value="0.45"/>
-    <DefineVariable Name="uBGL" Value="0.015"/>
-    <DefineVariable Name="uBGA" Value="1.0"/>
-
     <DefineVariable Name="uPosH" Value="0.527778"/>
     <DefineVariable Name="uPosS" Value="0.90"/>
     <DefineVariable Name="uPosL" Value="0.62"/>
@@ -142,11 +127,6 @@
     <DefineVariable Name="uNeutL" Value="0.75"/>
     <DefineVariable Name="uNeutA" Value="1.0"/>
 
-    <DefineVariable Name="uElecH" Value="0.527778"/>
-    <DefineVariable Name="uElecS" Value="0.98"/>
-    <DefineVariable Name="uElecL" Value="0.92"/>
-    <DefineVariable Name="uElecA" Value="1.0"/>
-
     <!-- ================= Shader ================= -->
     <Shader Name="ScreenShader">
       <VertexShaderSource><![CDATA[
@@ -165,16 +145,14 @@ varying vec2 vUv;
 uniform float uTime, uOrbDrive, uNucDrive, uSmooth, uAnimSpeed, uAspect, uPhase;
 
 /* user uniforms */
-uniform float uOrbScale, uDensity, uStepMul;
+uniform float uOrbScale, uStepMul;
 uniform float uNucR, uNucDot;
 
 /* HSLA uniforms */
-uniform float uBGH,uBGS,uBGL,uBGA;
 uniform float uPosH,uPosS,uPosL,uPosA;
 uniform float uNegH,uNegS,uNegL,uNegA;
 uniform float uProtH,uProtS,uProtL,uProtA;
 uniform float uNeutH,uNeutS,uNeutL,uNeutA;
-uniform float uElecH,uElecS,uElecL,uElecA;
 
 /* constants for volume render */
 const float ZOOM=1.0;
@@ -184,7 +162,7 @@ const float STEP_LEN0 = (2.0*HALF_Z)/float(VOL_STEPS);
 
 const float ORB_S_1S=0.80, ORB_S_2S=0.30, ORB_S_2P=0.25;
 
-const float DENS_PEAK_GAIN=3.5;
+const float SURF_THRESH=0.15;
 
 const float PROTONS=8.0, NEUTRONS=8.0;
 const float NUC_JITTER=0.35;
@@ -256,12 +234,10 @@ float densityAt(vec3 p, float state, float drive){
 }
 
 /* colors */
-vec3  bgRGB()   { return hsl2rgb(vec3(uBGH,uBGS,uBGL))*uBGA; }
 vec3  posRGB()  { return hsl2rgb(vec3(uPosH,uPosS,uPosL))*uPosA; }
 vec3  negRGB()  { return hsl2rgb(vec3(uNegH,uNegS,uNegL))*uNegA; }
 vec4  protHSLA(){ return vec4(hsl2rgb(vec3(uProtH,uProtS,uProtL)), uProtA); }
 vec4  neutHSLA(){ return vec4(hsl2rgb(vec3(uNeutH,uNeutS,uNeutL)), uNeutA); }
-vec4  elecHSLA(){ return vec4(hsl2rgb(vec3(uElecH,uElecS,uElecL)), uElecA); }
 
 vec3 nucleus(vec2 uv01){
   vec3 col=vec3(0.0); int NP=int(PROTONS+0.5), NN=int(NEUTRONS+0.5), NT=NP+NN;
@@ -297,17 +273,14 @@ vec3 nucleus(vec2 uv01){
 }
 
 void main(){
-  vec3 col = bgRGB();
+  vec3 col = vec3(0.0);
   float d  = clamp(uOrbDrive, 0.0, 1.0);
   d = d*d*(3.0 - 2.0*d);
   float st = uPhase;
 
   float stepLen = STEP_LEN0 * max(0.5, uStepMul);
-  float kComp   = STEP_LEN0 / stepLen;
-
   vec3  ro = vec3(uvHNorm()/max(ZOOM,1e-3), -HALF_Z);
   vec3  rd = vec3(0,0,1);
-  float T  = 1.0;
   vec3  acc= vec3(0.0);
 
   vec3 cPos = posRGB();
@@ -319,35 +292,26 @@ void main(){
     float psi = psiMix(p, st, d);
     float pos = max(psi, 0.0), neg = max(-psi, 0.0);
     float rPos= pos*pos, rNeg=neg*neg;
-
-    float rho = (rPos + rNeg);
-
-    float k    = uDensity * kComp;
-    float a    = 1.0 - exp(-k * rho * stepLen);
-    a = clamp(a, 0.0, 1.0);
-
-    float wsum = rPos + rNeg + 1e-6;
-    vec3  tint = (cPos*(rPos/wsum) + cNeg*(rNeg/wsum));
-
-    float eps = stepLen;
-    vec3 grad = vec3(
-      densityAt(p + vec3(eps,0.0,0.0), st, d) - rho,
-      densityAt(p + vec3(0.0,eps,0.0), st, d) - rho,
-      densityAt(p + vec3(0.0,0.0,eps), st, d) - rho
-    );
-    float shade = 0.5 + 0.5 * max(dot(normalize(grad), normalize(vec3(1.0,1.0,1.0))), 0.0);
-
-    vec3  contrib = tint * a * shade;
-    acc += T * contrib;
-    T   *= (1.0 - a);
-    if(T < 0.02) break;
+    float rho = rPos + rNeg;
+    if(rho > SURF_THRESH){
+      float wsum = rPos + rNeg + 1e-6;
+      vec3  tint = (cPos*(rPos/wsum) + cNeg*(rNeg/wsum));
+      float eps = stepLen;
+      vec3 grad = vec3(
+        densityAt(p + vec3(eps,0.0,0.0), st, d) - rho,
+        densityAt(p + vec3(0.0,eps,0.0), st, d) - rho,
+        densityAt(p + vec3(0.0,0.0,eps), st, d) - rho
+      );
+      float shade = 0.5 + 0.5 * max(dot(normalize(grad), normalize(vec3(1.0,1.0,1.0))), 0.0);
+      acc = tint * shade;
+      break;
+    }
   }
 
   col += acc;
   col += nucleus(uv01());
 
-  col = 1.0 - exp(-min(col, vec3(24.0)));
-  col = pow(col, vec3(1.0/2.2));
+  col = pow(clamp(col,0.0,1.0), vec3(1.0/2.2));
   gl_FragColor = vec4(col,1.0);
 }
       ]]></FragmentShaderSource>
@@ -362,16 +326,10 @@ void main(){
         <ShaderVariable VariableName="uPhase"      VariableRef="Phase"/>
 
         <ShaderVariable VariableName="uOrbScale"   VariableRef="OrbScale"/>
-        <ShaderVariable VariableName="uDensity"    VariableRef="Density"/>
         <ShaderVariable VariableName="uStepMul"    VariableRef="StepMul"/>
 
         <ShaderVariable VariableName="uNucR"       VariableRef="NucR"/>
         <ShaderVariable VariableName="uNucDot"     VariableRef="NucDot"/>
-
-        <ShaderVariable VariableName="uBGH" VariableRef="uBGH"/>
-        <ShaderVariable VariableName="uBGS" VariableRef="uBGS"/>
-        <ShaderVariable VariableName="uBGL" VariableRef="uBGL"/>
-        <ShaderVariable VariableName="uBGA" VariableRef="uBGA"/>
 
         <ShaderVariable VariableName="uPosH" VariableRef="uPosH"/>
         <ShaderVariable VariableName="uPosS" VariableRef="uPosS"/>
@@ -392,11 +350,6 @@ void main(){
         <ShaderVariable VariableName="uNeutS" VariableRef="uNeutS"/>
         <ShaderVariable VariableName="uNeutL" VariableRef="uNeutL"/>
         <ShaderVariable VariableName="uNeutA" VariableRef="uNeutA"/>
-
-        <ShaderVariable VariableName="uElecH" VariableRef="uElecH"/>
-        <ShaderVariable VariableName="uElecS" VariableRef="uElecS"/>
-        <ShaderVariable VariableName="uElecL" VariableRef="uElecL"/>
-        <ShaderVariable VariableName="uElecA" VariableRef="uElecA"/>
       </UniformVariables>
     </Shader>
 
@@ -432,14 +385,6 @@ Parameters[21]=0.5;
 Parameters[22]=0.5;
 Parameters[23]=0.5;
 Parameters[24]=0.5;
-Parameters[25]=0.5;
-Parameters[26]=0.5;
-Parameters[27]=0.5;
-Parameters[28]=0.5;
-Parameters[29]=0.5;
-Parameters[30]=0.5;
-Parameters[31]=0.5;
-Parameters[32]=0.5;
 ]]></Expression></ZExpression>
   </OnLoaded>
 
@@ -542,36 +487,26 @@ else         NucDot = BASE_NDOT_DEF + (BASE_NDOT_MAX - BASE_NDOT_DEF) * (v * 2.0
     <!-- HSLA (0.5 = DEF_*) -->
     <ZExpression><Expression><![CDATA[
 float q; float def;
-/* BG */
-def = DEF_BGH/360.0; q = Parameters[9];  if(q<0.5) uBGH = def*(q*2.0); else uBGH = def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[10]; if(q<0.5) uBGS = 0.0 + (DEF_BGS - 0.0)*(q*2.0); else uBGS = DEF_BGS + (1.0-DEF_BGS)*(q*2.0-1.0);
-q = Parameters[11]; if(q<0.5) uBGL = 0.0 + (DEF_BGL - 0.0)*(q*2.0); else uBGL = DEF_BGL + (1.0-DEF_BGL)*(q*2.0-1.0);
-q = Parameters[12]; if(q<0.5) uBGA = 0.0 + (DEF_BGA - 0.0)*(q*2.0); else uBGA = DEF_BGA + (1.0-DEF_BGA)*(q*2.0-1.0);
 /* Proton */
-def = DEF_ProtH/360.0; q = Parameters[13]; if(q<0.5) uProtH=def*(q*2.0); else uProtH=def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[14]; if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
-q = Parameters[15]; if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
-q = Parameters[16]; if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
+def = DEF_ProtH/360.0; q = Parameters[9];  if(q<0.5) uProtH=def*(q*2.0); else uProtH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[10]; if(q<0.5) uProtS=0.0 + (DEF_ProtS-0.0)*(q*2.0); else uProtS=DEF_ProtS + (1.0-DEF_ProtS)*(q*2.0-1.0);
+q = Parameters[11]; if(q<0.5) uProtL=0.0 + (DEF_ProtL-0.0)*(q*2.0); else uProtL=DEF_ProtL + (1.0-DEF_ProtL)*(q*2.0-1.0);
+q = Parameters[12]; if(q<0.5) uProtA=0.0 + (DEF_ProtA-0.0)*(q*2.0); else uProtA=DEF_ProtA + (1.0-DEF_ProtA)*(q*2.0-1.0);
 /* Neutron */
-def = DEF_NeutH/360.0; q = Parameters[17]; if(q<0.5) uNeutH=def*(q*2.0); else uNeutH=def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[18]; if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
-q = Parameters[19]; if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
-q = Parameters[20]; if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
-/* Electron */
-def = DEF_ElecH/360.0; q = Parameters[21]; if(q<0.5) uElecH=def*(q*2.0); else uElecH=def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[22]; if(q<0.5) uElecS=0.0 + (DEF_ElecS-0.0)*(q*2.0); else uElecS=DEF_ElecS + (1.0-DEF_ElecS)*(q*2.0-1.0);
-q = Parameters[23]; if(q<0.5) uElecL=0.0 + (DEF_ElecL-0.0)*(q*2.0); else uElecL=DEF_ElecL + (1.0-DEF_ElecL)*(q*2.0-1.0);
-q = Parameters[24]; if(q<0.5) uElecA=0.0 + (DEF_ElecA-0.0)*(q*2.0); else uElecA=DEF_ElecA + (1.0-DEF_ElecA)*(q*2.0-1.0);
+def = DEF_NeutH/360.0; q = Parameters[13]; if(q<0.5) uNeutH=def*(q*2.0); else uNeutH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[14]; if(q<0.5) uNeutS=0.0 + (DEF_NeutS-0.0)*(q*2.0); else uNeutS=DEF_NeutS + (1.0-DEF_NeutS)*(q*2.0-1.0);
+q = Parameters[15]; if(q<0.5) uNeutL=0.0 + (DEF_NeutL-0.0)*(q*2.0); else uNeutL=DEF_NeutL + (1.0-DEF_NeutL)*(q*2.0-1.0);
+q = Parameters[16]; if(q<0.5) uNeutA=0.0 + (DEF_NeutA-0.0)*(q*2.0); else uNeutA=DEF_NeutA + (1.0-DEF_NeutA)*(q*2.0-1.0);
 /* Orbital+ */
-def = DEF_PosH/360.0; q = Parameters[25]; if(q<0.5) uPosH=def*(q*2.0); else uPosH=def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[26]; if(q<0.5) uPosS=0.0 + (DEF_PosS-0.0)*(q*2.0); else uPosS=DEF_PosS + (1.0-DEF_PosS)*(q*2.0-1.0);
-q = Parameters[27]; if(q<0.5) uPosL=0.0 + (DEF_PosL-0.0)*(q*2.0); else uPosL=DEF_PosL + (1.0-DEF_PosL)*(q*2.0-1.0);
-q = Parameters[28]; if(q<0.5) uPosA=0.0 + (DEF_PosA-0.0)*(q*2.0); else uPosA=DEF_PosA + (1.0-DEF_PosA)*(q*2.0-1.0);
+def = DEF_PosH/360.0; q = Parameters[17]; if(q<0.5) uPosH=def*(q*2.0); else uPosH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[18]; if(q<0.5) uPosS=0.0 + (DEF_PosS-0.0)*(q*2.0); else uPosS=DEF_PosS + (1.0-DEF_PosS)*(q*2.0-1.0);
+q = Parameters[19]; if(q<0.5) uPosL=0.0 + (DEF_PosL-0.0)*(q*2.0); else uPosL=DEF_PosL + (1.0-DEF_PosL)*(q*2.0-1.0);
+q = Parameters[20]; if(q<0.5) uPosA=0.0 + (DEF_PosA-0.0)*(q*2.0); else uPosA=DEF_PosA + (1.0-DEF_PosA)*(q*2.0-1.0);
 /* Orbital- */
-def = DEF_NegH/360.0; q = Parameters[29]; if(q<0.5) uNegH=def*(q*2.0); else uNegH=def + (1.0-def)*(q*2.0-1.0);
-q = Parameters[30]; if(q<0.5) uNegS=0.0 + (DEF_NegS-0.0)*(q*2.0); else uNegS=DEF_NegS + (1.0-DEF_NegS)*(q*2.0-1.0);
-q = Parameters[31]; if(q<0.5) uNegL=0.0 + (DEF_NegL-0.0)*(q*2.0); else uNegL=DEF_NegL + (1.0-DEF_NegL)*(q*2.0-1.0);
-q = Parameters[32]; if(q<0.5) uNegA=0.0 + (DEF_NegA-0.0)*(q*2.0); else uNegA=DEF_NegA + (1.0-DEF_NegA)*(q*2.0-1.0);
+def = DEF_NegH/360.0; q = Parameters[21]; if(q<0.5) uNegH=def*(q*2.0); else uNegH=def + (1.0-def)*(q*2.0-1.0);
+q = Parameters[22]; if(q<0.5) uNegS=0.0 + (DEF_NegS-0.0)*(q*2.0); else uNegS=DEF_NegS + (1.0-DEF_NegS)*(q*2.0-1.0);
+q = Parameters[23]; if(q<0.5) uNegL=0.0 + (DEF_NegL-0.0)*(q*2.0); else uNegL=DEF_NegL + (1.0-DEF_NegL)*(q*2.0-1.0);
+q = Parameters[24]; if(q<0.5) uNegA=0.0 + (DEF_NegA-0.0)*(q*2.0); else uNegA=DEF_NegA + (1.0-DEF_NegA)*(q*2.0-1.0);
 ]]></Expression></ZExpression>
 
     <!-- Fullscreen draw via your scaling group -->
