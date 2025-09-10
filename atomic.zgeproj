@@ -27,8 +27,8 @@
     <DefineVariable Name="BASE_ORB_HZ_MAX" Value="0.35"/>
     <!-- AnimSpeed scalar -->
     <DefineVariable Name="BASE_AS_MIN"    Value="0.02"/>
-    <DefineVariable Name="BASE_AS_DEF"    Value="0.18"/>
-    <DefineVariable Name="BASE_AS_MAX"    Value="0.40"/>
+    <DefineVariable Name="BASE_AS_DEF"    Value="0.20"/>
+    <DefineVariable Name="BASE_AS_MAX"    Value="3.00"/>
     <!-- Smoothness (easing width) -->
     <DefineVariable Name="BASE_SM_MIN"    Value="0.0"/>
     <DefineVariable Name="BASE_SM_DEF"    Value="0.70"/>
@@ -146,7 +146,7 @@ uniform float uTime, uOrbDrive, uNucDrive, uSmooth, uAnimSpeed, uAspect, uPhase;
 
 /* user uniforms */
 uniform float uOrbScale, uStepMul;
-uniform float uNucR, uNucDot;
+uniform float uNucR, uNucDot, uDensity;
 
 /* HSLA uniforms */
 uniform float uPosH,uPosS,uPosL,uPosA;
@@ -162,7 +162,7 @@ const float STEP_LEN0 = (2.0*HALF_Z)/float(VOL_STEPS);
 
 const float ORB_S_1S=0.80, ORB_S_2S=0.30, ORB_S_2P=0.25;
 
-const float SURF_THRESH=0.15;
+const float DENSITY_CUT=0.001;
 
 const float PROTONS=8.0, NEUTRONS=8.0;
 const float NUC_JITTER=0.35;
@@ -279,21 +279,23 @@ void main(){
   float st = uPhase;
 
   float stepLen = STEP_LEN0 * max(0.5, uStepMul);
-  vec3  ro = vec3(uvHNorm()/max(ZOOM,1e-3), -HALF_Z);
-  vec3  rd = vec3(0,0,1);
+  vec3  ro = vec3(0.0,0.0,-HALF_Z);
+  vec3  rd = normalize(vec3(uvHNorm()/max(ZOOM,1e-3), 1.0));
+  stepLen /= max(rd.z, 1e-3);
   vec3  acc= vec3(0.0);
+  float accA = 0.0;
 
   vec3 cPos = posRGB();
   vec3 cNeg = negRGB();
+  vec3 lightDir = normalize(vec3(1.0,1.0,1.0));
 
   for(int i=0;i<VOL_STEPS;i++){
-    float z = -HALF_Z + (float(i)+0.5)*stepLen;
-    vec3  p = ro + rd*(z+HALF_Z);
+    vec3 p = ro + rd*((float(i)+0.5)*stepLen);
     float psi = psiMix(p, st, d);
     float pos = max(psi, 0.0), neg = max(-psi, 0.0);
     float rPos= pos*pos, rNeg=neg*neg;
     float rho = rPos + rNeg;
-    if(rho > SURF_THRESH){
+    if(rho > DENSITY_CUT){
       float wsum = rPos + rNeg + 1e-6;
       vec3  tint = (cPos*(rPos/wsum) + cNeg*(rNeg/wsum));
       float eps = stepLen;
@@ -302,9 +304,11 @@ void main(){
         densityAt(p + vec3(0.0,eps,0.0), st, d) - rho,
         densityAt(p + vec3(0.0,0.0,eps), st, d) - rho
       );
-      float shade = 0.5 + 0.5 * max(dot(normalize(grad), normalize(vec3(1.0,1.0,1.0))), 0.0);
-      acc = tint * shade;
-      break;
+      float shade = 0.5 + 0.5 * max(dot(normalize(grad), lightDir), 0.0);
+      float alpha = 1.0 - exp(-rho * uDensity * stepLen);
+      acc += (1.0 - accA) * tint * shade * alpha;
+      accA += (1.0 - accA) * alpha;
+      if(accA > 0.995) break;
     }
   }
 
@@ -330,6 +334,7 @@ void main(){
 
         <ShaderVariable VariableName="uNucR"       VariableRef="NucR"/>
         <ShaderVariable VariableName="uNucDot"     VariableRef="NucDot"/>
+        <ShaderVariable VariableName="uDensity"    VariableRef="Density"/>
 
         <ShaderVariable VariableName="uPosH" VariableRef="uPosH"/>
         <ShaderVariable VariableName="uPosS" VariableRef="uPosS"/>

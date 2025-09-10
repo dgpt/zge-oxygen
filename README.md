@@ -19,6 +19,7 @@ The FL Studio ZGameEditor UI exposes the following parameters:
 13. Orbital- HSLA
 
 All sliders default to 50% to ensure a visible render on load. The nucleus jitters with audio rather than changing size,
-orbitals speed up with sound, and each element has independent sensitivity and color controls. Orbitals are rendered as
-3D surfaces with directional shading for a more defined, quantum-accurate look. The background color is fixed at full alpha
-and no longer user-adjustable.
+orbitals accelerate with sound instead of brightening, and each element has independent sensitivity and color controls.
+Orbitals are now ray-marched volumetric clouds with soft edges and directional lighting, yielding a deeper three-dimensional
+feel while remaining quantum-accurate. Animation speed offers a much wider range, and the background color is fixed at full
+alpha and no longer user-adjustable.
